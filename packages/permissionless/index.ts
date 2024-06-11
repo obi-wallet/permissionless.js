@@ -1,3 +1,5 @@
+import type { SignerToEcdsaKernelSmartAccountParameters } from "./accounts"
+import { signerToEcdsaKernelSmartAccount } from "./accounts"
 import type {
     EstimateUserOperationGasParameters,
     EstimateUserOperationGasReturnType
@@ -57,7 +59,8 @@ export type {
     WaitForUserOperationReceiptParameters,
     SmartAccountClient,
     SmartAccountClientConfig,
-    SmartAccountActions
+    SmartAccountActions,
+    SignerToEcdsaKernelSmartAccountParameters
 }
 
 export {
@@ -74,7 +77,8 @@ export {
     bundlerActions,
     WaitForUserOperationReceiptTimeoutError,
     createSmartAccountClient,
-    smartAccountActions
+    smartAccountActions,
+    signerToEcdsaKernelSmartAccount
 }
 import type { UserOperation } from "./types/userOperation"
 
