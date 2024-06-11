@@ -26,6 +26,54 @@ export class SignTransactionNotSupportedBySmartAccount extends BaseError {
     }
 }
 
+export class SignTypedDataNotSupportedByReadonlyAccount extends BaseError {
+    override name = "SignTypedDataNotSupportedByReadonlyAccount"
+    constructor({ docsPath }: { docsPath?: string } = {}) {
+        super(
+            [
+                "A readonly account cannot sign typed data.",
+                "Please use an account with signer."
+            ].join("\n"),
+            {
+                docsPath,
+                docsSlug: "account"
+            }
+        )
+    }
+}
+
+export class SignUserOperationNotSupportedByReadonlyAccount extends BaseError {
+    override name = "SignUserOperationNotSupportedByReadonlyAccount"
+    constructor({ docsPath }: { docsPath?: string } = {}) {
+        super(
+            [
+                "A readonly account cannot sign user operation.",
+                "Please use an account with signer."
+            ].join("\n"),
+            {
+                docsPath,
+                docsSlug: "account"
+            }
+        )
+    }
+}
+
+export class SignMessageNotSupportedByReadonlyAccount extends BaseError {
+    override name = "SignMessageNotSupportedByReadonlyAccount"
+    constructor({ docsPath }: { docsPath?: string } = {}) {
+        super(
+            [
+                "A readonly account cannot sign message.",
+                "Please use an account with signer."
+            ].join("\n"),
+            {
+                docsPath,
+                docsSlug: "account"
+            }
+        )
+    }
+}
+
 export type SmartAccount<
     entryPoint extends EntryPoint,
     TSource extends string = string,

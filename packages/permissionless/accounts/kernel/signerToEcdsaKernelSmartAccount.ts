@@ -32,7 +32,10 @@ import { isSmartAccountDeployed } from "../../utils/isSmartAccountDeployed"
 import { toSmartAccount } from "../toSmartAccount"
 import type { SmartAccount } from "../types"
 import {
+    SignMessageNotSupportedByReadonlyAccount,
     SignTransactionNotSupportedBySmartAccount,
+    SignTypedDataNotSupportedByReadonlyAccount,
+    SignUserOperationNotSupportedByReadonlyAccount,
     type SmartAccountSigner
 } from "../types"
 import { KernelInitAbi } from "./abi/KernelAccountAbi"
@@ -350,7 +353,7 @@ export type SignerToEcdsaKernelSmartAccountParameters<
     TSource extends string = string,
     TAddress extends Address = Address
 > = Prettify<{
-    signer: SmartAccountSigner<TSource, TAddress>
+    signer: SmartAccountSigner<TSource, TAddress> | Address
     entryPoint: entryPoint
     address?: Address
     index?: bigint
@@ -407,18 +410,25 @@ export async function signerToEcdsaKernelSmartAccount<
     })
 
     // Get the private key related account
-    const viemSigner: LocalAccount = {
-        ...signer,
-        signTransaction: (_, __) => {
-            throw new SignTransactionNotSupportedBySmartAccount()
-        }
-    } as LocalAccount
+    let viemSigner: LocalAccount
+    let signerAddress: Address
+    if (typeof signer !== "string") {
+        viemSigner = {
+            ...signer,
+            signTransaction: (_, __) => {
+                throw new SignTransactionNotSupportedBySmartAccount()
+            }
+        } as LocalAccount
+        signerAddress = viemSigner.address
+    } else {
+        signerAddress = signer
+    }
 
     // Helper to generate the init code for the smart account
     const generateInitCode = () =>
         getAccountInitCode({
             entryPoint: entryPointAddress,
-            owner: viemSigner.address,
+            owner: signerAddress,
             index,
             factoryAddress,
             accountLogicAddress,
@@ -431,7 +441,7 @@ export async function signerToEcdsaKernelSmartAccount<
             getAccountAddress<entryPoint, TTransport, TChain>({
                 client,
                 entryPoint: entryPointAddress,
-                owner: viemSigner.address,
+                owner: signerAddress,
                 ecdsaValidatorAddress,
                 initCodeProvider: generateInitCode,
                 deployedAccountAddress,
@@ -453,6 +463,9 @@ export async function signerToEcdsaKernelSmartAccount<
     return toSmartAccount({
         address: accountAddress,
         async signMessage({ message }) {
+            if (typeof signer === "string") {
+                throw new SignMessageNotSupportedByReadonlyAccount()
+            }
             const signature = await signMessage(client, {
                 account: viemSigner,
                 message,
@@ -479,6 +492,9 @@ export async function signerToEcdsaKernelSmartAccount<
                 | keyof TTypedData
                 | "EIP712Domain" = keyof TTypedData
         >(typedData: TypedDataDefinition<TTypedData, TPrimaryType>) {
+            if (typeof signer === "string") {
+                throw new SignTypedDataNotSupportedByReadonlyAccount()
+            }
             const signature = await signTypedData<
                 TTypedData,
                 TPrimaryType,
@@ -523,6 +539,9 @@ export async function signerToEcdsaKernelSmartAccount<
 
         // Sign a user operation
         async signUserOperation(userOperation) {
+            if (typeof signer === "string") {
+                throw new SignUserOperationNotSupportedByReadonlyAccount()
+            }
             const hash = getUserOperationHash({
                 userOperation: {
                     ...userOperation,
